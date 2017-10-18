@@ -1,0 +1,71 @@
+{
+    "name": "php-file-types",
+    "displayName": "PHP File Types",
+    "description": "Adds php file type templates to explorers context menu",
+    "version": "0.0.1",
+    "publisher": "fetzi",
+    "engines": {
+        "vscode": "^1.17.0"
+    },
+    "categories": [
+        "Languages",
+        "Snippets"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "phpfiletypes.createFile",
+                "title": "New PHP File"
+            },
+            {
+                "command": "phpfiletypes.createClass",
+                "title": "New PHP Class"
+            },
+            {
+                "command": "phpfiletypes.createInterface",
+                "title": "New PHP Interface"
+            },
+            {
+                "command": "phpfiletypes.createTrait",
+                "title": "New PHP Trait"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "group": "navigation@-1",
+                    "command": "phpfiletypes.createFile"
+                },
+                {
+                    "group": "navigation@-1",
+                    "command": "phpfiletypes.createClass"
+                },
+                {
+                    "group": "navigation@-1",
+                    "command": "phpfiletypes.createInterface"
+                },
+                {
+                    "group": "navigation@-1",
+                    "command": "phpfiletypes.createTrait"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.5.3",
+        "vscode": "^1.1.5",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
+    }
+}
