@@ -12,7 +12,11 @@
         "Snippets"
     ],
     "activationEvents": [
-        "*"
+        "onLanguage:php",
+        "onCommand:phpfiletypes.createFile",
+        "onCommand:phpfiletypes.createClass",
+        "onCommand:phpfiletypes.createInterface",
+        "onCommand:phpfiletypes.createTrait"
     ],
     "main": "./out/extension",
     "contributes": {
