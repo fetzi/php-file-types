@@ -2,7 +2,7 @@
     "name": "php-file-types",
     "displayName": "PHP File Types",
     "description": "Adds php file type templates to explorers context menu",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "fetzi",
     "engines": {
         "vscode": "^1.17.0"
