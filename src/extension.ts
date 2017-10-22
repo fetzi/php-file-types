@@ -4,6 +4,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Namespace }from './namespace';
+
+let ns = new Namespace();
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -12,6 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('"php-file-types" is now active!');
+
+    ns.initialize();
 
     context.subscriptions.push(vscode.commands.registerCommand('phpfiletypes.createFile', createFile));
     context.subscriptions.push(vscode.commands.registerCommand('phpfiletypes.createClass', createClass));
@@ -74,6 +79,8 @@ function promptForFilename(args, type: string) {
 
             return currentPath;
         }, '');
+
+        ns.getNamespace(filePath);
 
         if (type !== 'file') {
             let name = path.basename(filePath).replace('.php', '');
