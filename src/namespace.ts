@@ -53,8 +53,14 @@ export class Namespace
 
         for (let candidate of this.namespaces) {
             if (folder.indexOf(candidate['folder']) > -1) {
-                let namespace = candidate['namespace'] + folder.substring(folder.indexOf(candidate['folder']) + candidate['folder'].length)
-                namespace = namespace.replace('/', '\\');
+                let subNamespace = this.getSubNamespace(folder, candidate['folder']);
+                let namespace = candidate['namespace'] + subNamespace;
+                namespace = namespace.replace(/[\\\/]/g, '\\');
+
+                if (namespace.endsWith('\\')) {
+                    namespace = namespace.substring(0, namespace.length -1);
+                }
+
                 this.addToCache(folder, namespace);
 
                 return namespace;
@@ -67,6 +73,17 @@ export class Namespace
             value: ''
         });
     }
+
+    private getSubNamespace(relativeFolder: string, namespaceFolder: string)
+    {
+        let subNamespace: string = relativeFolder.substring(relativeFolder.indexOf(namespaceFolder) + namespaceFolder.length);
+
+        if (subNamespace.startsWith(path.sep)) {
+            subNamespace = subNamespace.substring(1);
+        }
+
+        return subNamespace;
+    }
     
     private addToCache(relativeFolder: string, namespace: string)
     {
@@ -76,6 +93,7 @@ export class Namespace
     private getFromCache(relativeFolder: string)
     {
         if (this.namespaceCache.hasOwnProperty(relativeFolder)) {
+            console.log('using cached namespace', this.namespaceCache[relativeFolder]);
             return this.namespaceCache[relativeFolder];
         }
 

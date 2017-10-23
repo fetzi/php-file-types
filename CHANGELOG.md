@@ -10,3 +10,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Rewrite of namespace detection
 - Also include autoload-dev namespaces
 - Add namespace cache for faster lookup
+
+## [1.1.1]
+- Fix bug for namespaces with double slashes
+
+## [1.1.2]
+- Fix bug for classes inside namespace root
