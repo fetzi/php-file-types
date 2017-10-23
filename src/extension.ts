@@ -16,8 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('"php-file-types" is now active!');
 
-    ns.initialize();
-
     context.subscriptions.push(vscode.commands.registerCommand('phpfiletypes.createFile', createFile));
     context.subscriptions.push(vscode.commands.registerCommand('phpfiletypes.createClass', createClass));
     context.subscriptions.push(vscode.commands.registerCommand('phpfiletypes.createInterface', createInterface));
@@ -80,28 +78,12 @@ function promptForFilename(args, type: string) {
             return currentPath;
         }, '');
 
-        ns.getNamespace(filePath);
-
         if (type !== 'file') {
             let name = path.basename(filePath).replace('.php', '');
-            getNamespace(filePath).then(async (namespace) => {
 
-                console.log("Namespace", namespace);
-                // if namespace is empty of invalid
-                if (namespace === '' || namespace.indexOf('/') > -1) {
-                    return await vscode.window.showInputBox({
-                        ignoreFocusOut: true,
-                        prompt: 'Please enter the ' + type + ' namespace',
-                        value: ''
-                    });
-                } 
-                
-                return namespace;
-            }).then((namespace) => {
-                if (namespace) {
-                    createFileByType(type, filePath, namespace, name);
-                }
-            });            
+            ns.getNamespace(filePath, type).then((namespace) => {
+                createFileByType(type, filePath, namespace, name);
+            });
         } else {
             createFileByType(type, filePath);
         }
@@ -140,28 +122,6 @@ function findCursor(template: string) {
     let char = beforeCursor.substr(beforeCursor.lastIndexOf('\n')).length;
 
     return new vscode.Position(line, char);
-}
-
-async function getNamespace(filePath)
-{
-    let fileName = path.basename(filePath);
-    let folder = filePath.replace('/' + fileName, '');
-    let composerFile = vscode.workspace.rootPath + path.sep + 'composer.json';
-
-    if (fs.existsSync(composerFile)) {
-
-        let doc: vscode.TextDocument = await vscode.workspace.openTextDocument(composerFile);
-        let data = JSON.parse(doc.getText());
-        
-        let namespaces = data.autoload['psr-4'];
-        
-        for (let key in namespaces) {
-            let namespace = key + folder.substring(folder.indexOf(namespaces[key]) + namespaces[key].length);
-            return namespace.replace('/', '\\');
-        }
-    }
-
-    return '';
 }
 
 // this method is called when your extension is deactivated
