@@ -6,64 +6,39 @@ import * as fs from 'fs';
 
 export class Namespace
 {
-    private composerFile: string;
-    private namespaces: Array<Object> = new Array<Object>();
-    private namespaceCache: object = {};
-
-    constructor() {
-        this.composerFile = vscode.workspace.rootPath + path.sep + 'composer.json';
-
-        fs.watchFile(this.composerFile, () => {
-            console.log('composer.json change detected');
-            this.loadNamespaces();
-        });
-
-        this.loadNamespaces();
-    }
-
-    private loadNamespaces()
-    {
-        this.namespaces = new Array<Object>();
-        this.namespaceCache = {};
-
-        if (fs.existsSync(this.composerFile)) {
-            let buffer: Buffer = fs.readFileSync(this.composerFile);
-            let data = JSON.parse(buffer.toString());
-
-            if (data.hasOwnProperty('autoload') && data.autoload.hasOwnProperty('psr-4')) {
-                this.addNamespaces(data.autoload['psr-4']);
-            }
-            
-            if (data.hasOwnProperty('autoload-dev') && data['autoload-dev'].hasOwnProperty('psr-4')) {
-                this.addNamespaces(data['autoload-dev']['psr-4']);
-            }
-        }
-    }
+    private namespaces: object = {};
+    private knownComposerFiles: object = {};
 
     public async getNamespace(filePath: string, type: string)
     {
-        let relativePath = path.relative(vscode.workspace.rootPath, filePath);
-        let folder = path.dirname(relativePath);
+        let composerFile = this.knowsComposerFileForPath(filePath);
 
-        let cachedNs = this.getFromCache(folder);
+        if (!composerFile) {
+            composerFile = this.findClosestComposerFile(filePath);
 
-        if (cachedNs) {
-            return cachedNs;
+            if (composerFile) {
+                this.addComposerFile(composerFile);
+            }
         }
 
-        for (let candidate of this.namespaces) {
-            if (folder.indexOf(candidate['folder']) > -1) {
-                let subNamespace = this.getSubNamespace(folder, candidate['folder']);
-                let namespace = candidate['namespace'] + subNamespace;
-                namespace = namespace.replace(/[\\\/]/g, '\\');
+        if (composerFile) {
+            let composerConfig = this.namespaces[composerFile];
 
-                if (namespace.endsWith('\\')) {
-                    namespace = namespace.substring(0, namespace.length -1);
+            let relativePath = path.relative(composerConfig.basePath, filePath);
+            let folder = path.dirname(relativePath);
+            
+            for (let candidate of composerConfig.namespaces) {
+                if (folder.startsWith(candidate['folder'])) {
+                    let subNamespace = this.getSubNamespace(folder, candidate['folder']);
+                    let namespace = candidate['namespace'] + subNamespace;
+                    namespace = namespace.replace(/[\\\/]/g, '\\');
+    
+                    if (namespace.endsWith('\\')) {
+                        namespace = namespace.substring(0, namespace.length -1);
+                    }
+    
+                    return namespace;
                 }
-
-                this.addToCache(folder, namespace);
-
-                return namespace;
             }
         }
 
@@ -84,29 +59,78 @@ export class Namespace
 
         return subNamespace;
     }
-    
-    private addToCache(relativeFolder: string, namespace: string)
-    {
-        this.namespaceCache[relativeFolder] = namespace;
-    }
 
-    private getFromCache(relativeFolder: string)
+    private findClosestComposerFile(filePath: string)
     {
-        if (this.namespaceCache.hasOwnProperty(relativeFolder)) {
-            console.log('using cached namespace', this.namespaceCache[relativeFolder]);
-            return this.namespaceCache[relativeFolder];
+        let folders = filePath.split(path.sep);
+        folders.pop();
+
+        let currentFolder = folders.join(path.sep);
+
+        if (!currentFolder) {
+            return;
         }
 
-        return null;
+        let composerCandidate = currentFolder + path.sep + 'composer.json';
+
+        if (fs.existsSync(composerCandidate)) {
+            return composerCandidate;
+        }
+
+        return this.findClosestComposerFile(currentFolder);
     }
 
-    private addNamespaces(list)
+    private knowsComposerFileForPath(filePath: string)
     {
+        for (let key in this.knownComposerFiles) {
+            if (filePath.startsWith(key)) {
+                return this.knownComposerFiles[key];
+            }
+        }
+    }
+
+    private addComposerFile(composerFile: string)
+    {
+        this.knownComposerFiles[path.dirname(composerFile)] = composerFile;
+
+        fs.watchFile(composerFile, () => {
+            this.indexComposerFile(composerFile);
+        });
+
+        this.indexComposerFile(composerFile);
+    }
+
+    private indexComposerFile(composerFile: string)
+    {
+        let buffer: Buffer = fs.readFileSync(composerFile);
+        let data = JSON.parse(buffer.toString());
+        let namespaces = [];
+
+        if (data.hasOwnProperty('autoload') && data.autoload.hasOwnProperty('psr-4')) {
+            namespaces.push(...this.getNamespaces(data.autoload['psr-4']));
+        }
+        
+        if (data.hasOwnProperty('autoload-dev') && data['autoload-dev'].hasOwnProperty('psr-4')) {
+            namespaces.push(...this.getNamespaces(data['autoload-dev']['psr-4']));
+        }
+
+        this.namespaces[composerFile] = {
+            basePath: path.dirname(composerFile),
+            namespaces: namespaces
+        };
+    }
+
+    private getNamespaces(list)
+    {
+        let namespaces = [];
+
         for (let key in list) {
-            this.namespaces.push({
+            namespaces.push({
                 'folder': list[key],
                 'namespace': key,
             });
         }
+
+        return namespaces;
     }
 }
