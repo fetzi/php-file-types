@@ -7,17 +7,17 @@ import * as fs from 'fs';
 export class Namespace
 {
     private namespaces: object = {};
-    private knownComposerFiles: object = {};
+    private resolvedComposerFiles: object = {};
 
     public async getNamespace(filePath: string, type: string)
     {
-        let composerFile = this.knowsComposerFileForPath(filePath);
+        let composerFile = this.resolveComposerFileForPath(filePath);
 
         if (!composerFile) {
             composerFile = this.findClosestComposerFile(filePath);
 
             if (composerFile) {
-                this.addComposerFile(composerFile);
+                this.registerComposerFile(composerFile);
             }
         }
 
@@ -80,18 +80,18 @@ export class Namespace
         return this.findClosestComposerFile(currentFolder);
     }
 
-    private knowsComposerFileForPath(filePath: string)
+    private resolveComposerFileForPath(filePath: string)
     {
-        for (let key in this.knownComposerFiles) {
+        for (let key in this.resolvedComposerFiles) {
             if (filePath.startsWith(key)) {
-                return this.knownComposerFiles[key];
+                return this.resolvedComposerFiles[key];
             }
         }
     }
 
-    private addComposerFile(composerFile: string)
+    private registerComposerFile(composerFile: string)
     {
-        this.knownComposerFiles[path.dirname(composerFile)] = composerFile;
+        this.resolvedComposerFiles[path.dirname(composerFile)] = composerFile;
 
         fs.watchFile(composerFile, () => {
             this.indexComposerFile(composerFile);
