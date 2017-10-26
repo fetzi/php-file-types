@@ -16,3 +16,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [1.1.2]
 - Fix bug for classes inside namespace root
+
+## [1.2.0]
+- Add support for monorepos
