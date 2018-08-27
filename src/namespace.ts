@@ -26,17 +26,17 @@ export class Namespace
 
             let relativePath = path.relative(composerConfig.basePath, filePath);
             let folder = path.dirname(relativePath);
-            
+
             for (let candidate of composerConfig.namespaces) {
                 if (folder.startsWith(candidate['folder'])) {
                     let subNamespace = this.getSubNamespace(folder, candidate['folder']);
                     let namespace = candidate['namespace'] + subNamespace;
                     namespace = namespace.replace(/[\\\/]/g, '\\');
-    
+
                     if (namespace.endsWith('\\')) {
                         namespace = namespace.substring(0, namespace.length -1);
                     }
-    
+
                     return namespace;
                 }
             }
@@ -53,7 +53,7 @@ export class Namespace
     {
         let subNamespace: string = relativeFolder.substring(relativeFolder.indexOf(namespaceFolder) + namespaceFolder.length);
 
-        if (subNamespace.startsWith(path.sep)) {
+        if (subNamespace.startsWith('/')) {
             subNamespace = subNamespace.substring(1);
         }
 
@@ -62,16 +62,16 @@ export class Namespace
 
     private findClosestComposerFile(filePath: string)
     {
-        let folders = filePath.split(path.sep);
+        let folders = filePath.split('/');
         folders.pop();
 
-        let currentFolder = folders.join(path.sep);
+        let currentFolder = folders.join('/');
 
         if (!currentFolder) {
             return;
         }
 
-        let composerCandidate = currentFolder + path.sep + 'composer.json';
+        let composerCandidate = currentFolder + '/composer.json';
 
         if (fs.existsSync(composerCandidate)) {
             return composerCandidate;
@@ -109,7 +109,7 @@ export class Namespace
         if (data.hasOwnProperty('autoload') && data.autoload.hasOwnProperty('psr-4')) {
             namespaces.push(...this.getNamespaces(data.autoload['psr-4']));
         }
-        
+
         if (data.hasOwnProperty('autoload-dev') && data['autoload-dev'].hasOwnProperty('psr-4')) {
             namespaces.push(...this.getNamespaces(data['autoload-dev']['psr-4']));
         }

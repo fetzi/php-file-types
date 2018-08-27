@@ -49,7 +49,7 @@ function promptForFilename(args, type: string) {
         currentPath = path.dirname(currentPath);
     }
 
-    currentPath += path.sep;
+    currentPath += '/';
 
     vscode.window.showInputBox({
         ignoreFocusOut: true,
@@ -69,8 +69,8 @@ function promptForFilename(args, type: string) {
             vscode.window.showErrorMessage('The file "' + path.basename(filePath) + '" already exists');
         }
 
-        path.dirname(filePath).split(path.sep).reduce((currentPath, folder) => {
-            currentPath += folder + path.sep;
+        path.dirname(filePath).split('/').reduce((currentPath, folder) => {
+            currentPath += folder + '/';
             if (!fs.existsSync(currentPath)){
                 fs.mkdirSync(currentPath);
             }
@@ -93,7 +93,7 @@ function promptForFilename(args, type: string) {
 function createFileByType(type: string, filePath: string, namespace?: string, name?: string) {
 
     let templateFile = type === 'file' ? 'file.tmpl' : 'type.tmpl';
-    let templateFilePath = vscode.extensions.getExtension('fetzi.php-file-types').extensionPath + path.sep + 'templates' + path.sep + templateFile;
+    let templateFilePath = vscode.extensions.getExtension('fetzi.php-file-types').extensionPath + '/templates/' + templateFile;
 
     vscode.workspace.openTextDocument(templateFilePath).then((doc: vscode.TextDocument) => {
         let template = doc.getText();
