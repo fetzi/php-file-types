@@ -11,6 +11,8 @@ export class Namespace
 
     public async getNamespace(filePath: string, type: string)
     {
+        filePath = filePath.replace(/\\/g, '/');
+
         let composerFile = this.resolveComposerFileForPath(filePath);
 
         if (!composerFile) {
